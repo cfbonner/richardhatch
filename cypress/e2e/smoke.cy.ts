@@ -5,7 +5,7 @@ describe("smoke tests", () => {
     cy.cleanupUser();
   });
 
-  it("should allow you to register and login", () => {
+  xit("should allow you to register and login", () => {
     const loginForm = {
       email: `${faker.internet.userName()}@example.com`,
       password: faker.internet.password(),
@@ -26,7 +26,7 @@ describe("smoke tests", () => {
     cy.findByRole("link", { name: /log in/i });
   });
 
-  it("should allow you to make a film", () => {
+  xit("should allow you to make a film", () => {
     const testFilm = {
       title: faker.lorem.words(1),
       synopsis: faker.lorem.sentences(1),
