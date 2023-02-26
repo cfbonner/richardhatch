@@ -31,7 +31,6 @@ export function deleteFilm({
 }: { id: Film["id"] } & {
   userId: User["id"];
 }) {
-  console.log({ id, userId });
   return prisma.film.deleteMany({
     where: {
       id: id,
