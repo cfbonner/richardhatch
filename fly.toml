@@ -1,4 +1,4 @@
-app = "richardhatch-f6a0"
+app = "richardhatch"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = [ ]
