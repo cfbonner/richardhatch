@@ -18,7 +18,7 @@ import { Tag } from "~/components/tag";
 import { TagList } from "~/components/tag_list";
 import { prisma } from "~/db.server";
 import { findOrCreateTag, maybeTagPost } from "~/models/tag.server";
-import { XMarkIcon } from '@heroicons/react/24/solid'
+import { XMarkIcon } from "@heroicons/react/24/solid";
 
 export async function loader({ params }: LoaderArgs) {
   const post = await prisma.post.findUnique({
@@ -35,26 +35,44 @@ export async function loader({ params }: LoaderArgs) {
 
 export async function action({ request, params }: ActionArgs) {
   const form = await request.formData();
-  const title = form.get("title");
 
   if (!params.postId) throw new Response("Not found", { status: 404 });
 
-  if (typeof title !== "string" || title.length === 0) {
-    return json({ errors: { title: "must be provided" } }, { status: 400 });
+  if (form.get("intent") == "delete") {
+    const tagId = form.get("tagId");
+
+    await prisma.postTags.delete({
+      where: {
+        postId_tagId: {
+          postId: params.postId,
+          tagId: tagId,
+        },
+      },
+    });
+
+    return redirect(`/posts/${params["postId"]}/postTags`);
   }
 
-  const tag = await findOrCreateTag({ title: title });
+  if (form.get("intent") == "create") {
+    const title = form.get("title");
 
-  await maybeTagPost({ postId: params.postId, tagId: tag.id });
+    if (typeof title !== "string" || title.length === 0) {
+      return json({ errors: { title: "must be provided" } }, { status: 400 });
+    }
 
-  return redirect(
-    `/posts/${params["postId"]}/postTags?${new URLSearchParams([
-      ["newTag", tag.slug],
-    ])}`
-  );
+    const tag = await findOrCreateTag({ title: title });
+
+    await maybeTagPost({ postId: params.postId, tagId: tag.id });
+
+    return redirect(
+      `/posts/${params["postId"]}/tags?${new URLSearchParams([
+        ["newTag", tag.slug],
+      ])}`
+    );
+  }
 }
 
-export default function PostTags() {
+export default function Tags() {
   const data = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigate = useNavigate();
@@ -64,16 +82,16 @@ export default function PostTags() {
   const newTag = searchParams.get("newTag");
 
   useEffect(() => {
-    if (tagInputEl.current == null) return
-    if (typeof newTag == 'string' ) {
-      tagInputEl.current.value = ''
+    if (tagInputEl.current == null) return;
+    if (typeof newTag == "string") {
+      tagInputEl.current.value = "";
     }
-  })
+  });
 
   const [isModalOpen, setIsModalOpen] = useState(true);
 
   const handleExitComplete = () => {
-    navigate(`/posts/${data.post.id}`, { replace: true });
+    navigate(`/posts/${data.post.id}`);
   };
 
   const handleDismiss = () => {
@@ -96,7 +114,7 @@ export default function PostTags() {
   return (
     <AnimatePresence onExitComplete={handleExitComplete}>
       {isModalOpen && (
-        <Modal title="Manage Tags" onDismiss={handleDismiss}>
+        <Modal title={`Tag ${data.post.title}`} onDismiss={handleDismiss}>
           <TagList className="mb-2">
             {data.postTags.map((tag) => (
               <Tag
@@ -107,15 +125,18 @@ export default function PostTags() {
                 <span className="flex items-center">
                   <span className="mr-1">{tag.title}</span>
                   <Form method="post" className="h-full">
-                    <input type="hidden" name="intent" value="delete"/>
-                    <input type="hidden" name="tagId" value={tag.id}/>
+                    <input type="hidden" name="intent" value="delete" />
+                    <input type="hidden" name="tagId" value={tag.id} />
                     <button
                       type="submit"
-                      className="h-full bg-transparent hover:text-underline"
+                      className="hover:text-underline h-full bg-transparent"
                     >
-                      <span className="sr-only">Delete</span><span aria-hidden="true"><XMarkIcon className="w-2 h-2 text-black"/></span>
+                      <span className="sr-only">Delete</span>
+                      <XMarkIcon
+                        aria-hidden="true"
+                        className="h-2 w-2 text-black"
+                      />
                     </button>
-
                   </Form>
                 </span>
               </Tag>
@@ -123,6 +144,7 @@ export default function PostTags() {
           </TagList>
           <Form method="post" className="space-y-2">
             <div>
+              <input type="hidden" name="intent" value="create" />
               <label className="flex w-full flex-col gap-1">
                 <span className="sr-only">Title:</span>
                 <input
@@ -131,17 +153,8 @@ export default function PostTags() {
                   type="text"
                   className="flex-1 rounded-md border-2 border-blue-500 px-3 text-lg leading-loose"
                   placeholder="Family friendly"
-                  aria-invalid={actionData?.errors?.title ? true : undefined}
-                  aria-errormessage={
-                    actionData?.errors?.title ? "title-error" : undefined
-                  }
                 />
               </label>
-              {actionData?.errors?.title && (
-                <div className="pt-1 text-red-700" id="title-error">
-                  {actionData.errors.title}
-                </div>
-              )}
             </div>
             <button
               type="submit"

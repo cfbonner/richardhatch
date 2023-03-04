@@ -46,6 +46,22 @@ export function createPost({
   });
 }
 
+export function updatePost({
+  id,
+  body,
+  title,
+}: Pick<Post, "body" | "title" | "id"> & { userId: User["id"] }) {
+  return prisma.post.update({
+    where: {
+      id: id,
+    },
+    data: {
+      title,
+      body,
+    },
+  });
+}
+
 export function deletePost({
   id,
   userId,

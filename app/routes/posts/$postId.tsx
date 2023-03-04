@@ -1,3 +1,4 @@
+import { CubeIcon, IdentificationIcon } from "@heroicons/react/24/outline";
 import { Form, useCatch, Outlet, Link, useLoaderData } from "@remix-run/react";
 import {
   ActionArgs,
@@ -42,24 +43,41 @@ export async function action({ request, params }: ActionArgs) {
 export default function ShowPostPage() {
   const data = useLoaderData<typeof loader>();
   return (
-    <div>
-      <h3 className="text-2xl font-bold">{data.post.title}</h3>
-      <p className="py-6">{data.post.body}</p>
-      <TagList className="max-w-sm">
+    <div className="max-w-md">
+      <h3 className="mb-2 text-2xl font-bold">{data.post.title}</h3>
+      {data.post.body && <p className="text-md mb-2">{data.post.body}</p>}
+      <div className="mb-4 flex w-full justify-end">
+        <Link
+          to="edit"
+          replace={true}
+          className="flex items-center gap-1 rounded border-blue-500 bg-white px-2 py-1 text-xs text-blue-700 hover:underline"
+        >
+          <IdentificationIcon className="h-3 w-3 stroke-current" />
+          Edit title and description
+        </Link>
+      </div>
+      <TagList>
         {data.postTags.map((tag) => (
           <Tag key={tag.id} id={tag.slug}>
             {tag.title}
           </Tag>
         ))}
+        <div className="flex w-full justify-end">
+          <Link
+            to="tags"
+            className="flex items-center gap-1 rounded border-blue-500 bg-white px-2 py-1 text-xs text-blue-700 hover:underline"
+            replace={true}
+          >
+            <CubeIcon className="h-3 w-3 stroke-current" />
+            Edit tags
+          </Link>
+        </div>
       </TagList>
-      <Link to="postTags" replace={true}>
-        Edit tags
-      </Link>
       <hr className="my-4" />
       <Form method="post">
         <button
           type="submit"
-          className="rounded bg-blue-500  py-2 px-4 text-white hover:bg-blue-600 focus:bg-blue-400"
+          className="rounded bg-blue-500 py-2 px-4 text-xs text-white hover:bg-blue-600 focus:bg-blue-400"
         >
           Delete
         </button>
