@@ -1,4 +1,4 @@
-import { Form, useActionData, useLoaderData, useMatches } from "@remix-run/react";
+import { Form, useActionData, useLoaderData, useMatches, useSearchParams } from "@remix-run/react";
 import {ActionArgs, json, LoaderArgs, redirect} from "@remix-run/server-runtime";
 import {prisma} from "~/db.server";
 
@@ -40,7 +40,7 @@ export async function action({request, params}: ActionArgs) {
     }
   })
 
-  const post = await prisma.postTags.upsert({
+  await prisma.postTags.upsert({
     where: {
       postId_tagId: {
         postId: params.postId,
@@ -54,19 +54,35 @@ export async function action({request, params}: ActionArgs) {
     update: {},
   })
 
-  return redirect(`/posts/${params.postId}/postTags`)
+  return redirect(`/posts/${params['postId']}/postTags?${new URLSearchParams([['newTag', tag.slug]])}`)
 }
 
 export default function PostTags() {
   const data = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
+  const [searchParams] = useSearchParams();
+  const newTag  = searchParams.get('newTag');
+  const tagClass = (tagSlug:string, tagSlugFromParam:string|null):string => {
+    if (typeof tagSlugFromParam != 'string') return ''
+
+    if (tagSlugFromParam == tagSlug) {
+      return ' animate-wiggle-once';
+    } else {
+      return '';
+    }
+  }
 
   return (
     <div>
       <h1 className="mt-4 mb-2 text-xl">Tags</h1>
-      <ul>
+      <ul className="flex flex-wrap gap-1 mb-1">
       {data.postTags.map((tag) => (
-        <li>
+        <li 
+	key={tag.id} 
+	id={tag.slug} 
+	className={
+	  'text-xs px-2 py-1 bg-blue-300 rounded' + ' ' + tagClass(tag.slug, newTag)
+	}>
           {tag.title}
         </li>
       ))}
