@@ -5,6 +5,8 @@ import {
   LoaderArgs,
   redirect,
 } from "@remix-run/server-runtime";
+import { Tag } from "~/components/tag";
+import { TagList } from "~/components/tag_list";
 import { prisma } from "~/db.server";
 import { deletePost } from "~/models/post.server";
 import { requireUserId } from "~/session.server";
@@ -14,6 +16,7 @@ export async function loader({ params }: LoaderArgs) {
     where: {
       id: params.postId,
     },
+    include: { tags: { include: { tag: true } } },
   });
 
   if (!post)
@@ -21,7 +24,7 @@ export async function loader({ params }: LoaderArgs) {
       status: 404,
     });
 
-  return json({ post });
+  return json({ post, postTags: post.tags.map((tag) => tag.tag) });
 }
 
 export async function action({ request, params }: ActionArgs) {
@@ -42,6 +45,16 @@ export default function ShowPostPage() {
     <div>
       <h3 className="text-2xl font-bold">{data.post.title}</h3>
       <p className="py-6">{data.post.body}</p>
+      <TagList className="max-w-sm">
+        {data.postTags.map((tag) => (
+          <Tag key={tag.id} id={tag.slug}>
+            {tag.title}
+          </Tag>
+        ))}
+      </TagList>
+      <Link to="postTags" replace={true}>
+        Edit tags
+      </Link>
       <hr className="my-4" />
       <Form method="post">
         <button
@@ -52,7 +65,6 @@ export default function ShowPostPage() {
         </button>
       </Form>
       <Outlet />
-      <Link to="postTags">Add tags</Link>
     </div>
   );
 }
@@ -68,4 +80,3 @@ export function CatchBoundary() {
 
   throw new Error(`Unexpected caught response with status: ${caught.status}`);
 }
-

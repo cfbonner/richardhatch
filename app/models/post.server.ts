@@ -27,7 +27,7 @@ export function getPostListItems({ userId }: { userId: User["id"] }) {
 export function createPost({
   body,
   title,
-  type = 'post',
+  type = "post",
   userId,
 }: Pick<Post, "body" | "title" | "type"> & {
   userId: User["id"];
@@ -54,4 +54,3 @@ export function deletePost({
     where: { id, userId },
   });
 }
-

@@ -18,7 +18,7 @@ export async function action({ request }: ActionArgs) {
     );
   }
 
-  const post = await createPost({ title, body, userId, type: 'post' });
+  const post = await createPost({ title, body, userId, type: "post" });
 
   return redirect(`/posts/${post.id}`);
 }

@@ -1,6 +1,6 @@
 import { Form, Link, NavLink, Outlet, useLoaderData } from "@remix-run/react";
 import { json, LoaderArgs } from "@remix-run/server-runtime";
-import { getPostListItems, Post } from "~/models/post.server";
+import { getPostListItems } from "~/models/post.server";
 import { requireUserId } from "~/session.server";
 import { useUser } from "~/utils";
 
