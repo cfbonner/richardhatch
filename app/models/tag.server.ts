@@ -1,16 +1,23 @@
-import type { Post, Tag } from "@prisma/client";
+import type { Post, Tag, User } from "@prisma/client";
 import { prisma } from "~/db.server";
 
-export function findOrCreateTag({ title }: Pick<Tag, "title">) {
+export function findOrCreateTag({
+  title,
+  userId,
+}: Pick<Tag, "title"> & { userId: User["id"] }) {
   const slug = createSlug(title);
   return prisma.tag.upsert({
     create: {
       title: title,
       slug: slug,
+      userId: userId,
     },
     update: {},
     where: {
-      slug: slug,
+      userId_slug: {
+        userId: userId,
+        slug: slug,
+      },
     },
   });
 }
@@ -34,6 +41,21 @@ export function maybeTagPost({
       postId: postId,
     },
     update: {},
+  });
+}
+
+export function getTags({ userId }: { userId: User["id"] }) {
+  return prisma.tag.findMany({
+    orderBy: { posts: { _count: "desc" } },
+    where: { posts: { some: { post: { is: { userId: userId } } } } },
+    select: {
+      title: true,
+      id: true,
+      slug: true,
+      _count: {
+        select: { posts: true },
+      },
+    },
   });
 }
 

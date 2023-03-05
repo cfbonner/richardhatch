@@ -1,18 +1,8 @@
-import { Form, Link, NavLink, Outlet, useLoaderData } from "@remix-run/react";
-import { json, LoaderArgs } from "@remix-run/server-runtime";
-import { getPostListItems } from "~/models/post.server";
-import { requireUserId } from "~/session.server";
+import { Form, Link, NavLink, Outlet } from "@remix-run/react";
 import { useUser } from "~/utils";
-
-export async function loader({ request }: LoaderArgs) {
-  const userId = await requireUserId(request);
-  const postListItems = await getPostListItems({ userId });
-  return json({ postListItems });
-}
 
 export default function PostsPage() {
   const user = useUser();
-  const data = useLoaderData<typeof loader>();
 
   return (
     <div className="flex h-full min-h-screen flex-col">

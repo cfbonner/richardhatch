@@ -1,11 +1,7 @@
 import { CubeIcon, IdentificationIcon } from "@heroicons/react/24/outline";
 import { Form, useCatch, Outlet, Link, useLoaderData } from "@remix-run/react";
-import {
-  ActionArgs,
-  json,
-  LoaderArgs,
-  redirect,
-} from "@remix-run/server-runtime";
+import type { ActionArgs, LoaderArgs } from "@remix-run/server-runtime";
+import { json, redirect } from "@remix-run/server-runtime";
 import { Tag } from "~/components/tag";
 import { TagList } from "~/components/tag_list";
 import { prisma } from "~/db.server";

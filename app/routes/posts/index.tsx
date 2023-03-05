@@ -1,15 +1,18 @@
-import { json, LoaderArgs } from "@remix-run/server-runtime";
+import type { LoaderArgs } from "@remix-run/server-runtime";
+import { json } from "@remix-run/server-runtime";
 import { Link, NavLink, useLoaderData } from "@remix-run/react";
 import { getPosts } from "~/models/post.server";
 import { requireUserId } from "~/session.server";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { TagList } from "~/components/tag_list";
 import { Tag } from "~/components/tag";
+import { getTags } from "~/models/tag.server";
 
 export async function loader({ request }: LoaderArgs) {
   const userId = await requireUserId(request);
   const postListItems = await getPosts({ userId });
-  return json({ postListItems });
+  const tagList = await getTags({ userId });
+  return json({ postListItems, tagList });
 }
 
 export default function IndexPage() {
@@ -26,13 +29,13 @@ export default function IndexPage() {
             >
               <NavLink
                 className={({ isActive }) =>
-                  `block border-b px-4 py-2 text-xl ${
+                  `block border-b px-2 py-2 text-xl ${
                     isActive ? "bg-white" : ""
                   }`
                 }
                 to={post.id}
               >
-                <h2 className="mb-1 text-md font-bold">{post.title}</h2>
+                <h2 className="text-md mb-1 font-bold">{post.title}</h2>
                 <p className="mr-2 mb-5 text-xs">{post.body}</p>
                 <TagList>
                   {post.tags.map((tag) => (
@@ -55,6 +58,14 @@ export default function IndexPage() {
           <span>Create a new one</span>
         </Link>
       </div>
+      <h2 className="text-md mb-2 font-bold">Tags</h2>
+      <TagList className="pb-8">
+        {data.tagList.map((tag) => (
+          <Tag key={tag.id} id={tag.slug}>
+            {`${tag.title} (${tag._count.posts})`}
+          </Tag>
+        ))}
+      </TagList>
     </div>
   );
 }

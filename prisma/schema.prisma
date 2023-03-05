@@ -16,6 +16,7 @@ model User {
   notes     Note[]
   password  Password?
   posts     Post[]
+  tags      Tag[]
 }
 
 model Password {
@@ -45,42 +46,40 @@ model Film {
 }
 
 model Post {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   title     String
   body      String?
-  type      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  tags PostTags[]
+  type      String?
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags      PostTags[]
 }
 
 model PostTags {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  postId String
-  tagId  String
+  postId    String
+  tagId     String
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([postId, tagId])
 }
 
 model Tag {
-  id String @id @default(cuid())
+  id        String     @id @default(cuid())
+  userId    String
+  slug      String
+  title     String
+  body      String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  type      String?
+  posts     PostTags[]
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  slug  String  @unique
-  title String
-  type  String?
-  body  String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  posts PostTags[]
+  @@unique([userId, slug])
 }

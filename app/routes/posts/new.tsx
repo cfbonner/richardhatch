@@ -1,5 +1,6 @@
 import { Form, useActionData } from "@remix-run/react";
-import { ActionArgs, json } from "@remix-run/node";
+import type { ActionArgs } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 
 import { createPost } from "~/models/post.server";
@@ -11,6 +12,10 @@ export async function action({ request }: ActionArgs) {
   const title = formData.get("title");
   const body = formData.get("body");
 
+  if (typeof typeof title !== "string" || typeof body !== "string") {
+    throw new Response("Bad request", { status: 400 });
+  }
+
   if (typeof title !== "string" || title.length === 0) {
     return json(
       { errors: { title: "Title is required", body: null } },
@@ -20,7 +25,7 @@ export async function action({ request }: ActionArgs) {
 
   const post = await createPost({ title, body, userId, type: "post" });
 
-  return redirect(`/posts/${post.id}`);
+  return redirect(`/posts/${post.id}/tags`);
 }
 
 export default function NewPostsPage() {

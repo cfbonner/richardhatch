@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { createPortal } from "react-dom";
 
 export default function Modal(
   props: React.PropsWithChildren<{

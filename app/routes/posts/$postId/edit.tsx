@@ -4,12 +4,8 @@ import {
   useLoaderData,
   useNavigate,
 } from "@remix-run/react";
-import {
-  ActionArgs,
-  json,
-  LoaderArgs,
-  redirect,
-} from "@remix-run/server-runtime";
+import type { ActionArgs, LoaderArgs } from "@remix-run/server-runtime";
+import { json, redirect } from "@remix-run/server-runtime";
 import Modal from "~/components/modal";
 import { prisma } from "~/db.server";
 import { updatePost } from "~/models/post.server";
@@ -29,11 +25,19 @@ export async function loader({ params }: LoaderArgs) {
 }
 
 export async function action({ request, params }: ActionArgs) {
-  await requireUserId(request);
+  const userId = await requireUserId(request);
   const id = params.postId;
   const formData = await request.formData();
   const title = formData.get("title");
   const body = formData.get("body");
+
+  if (
+    typeof id !== "string" ||
+    typeof title !== "string" ||
+    typeof body !== "string"
+  ) {
+    throw new Response("Bad request", { status: 400 });
+  }
 
   if (typeof title !== "string" || title.length === 0) {
     return json(
@@ -42,7 +46,7 @@ export async function action({ request, params }: ActionArgs) {
     );
   }
 
-  const post = await updatePost({ id, title, body });
+  const post = await updatePost({ id, title, body, userId });
 
   return redirect(`/posts/${post.id}`);
 }
@@ -84,7 +88,7 @@ export default function EditPage() {
             <span className="text-sm text-blue-600">Description</span>
             <textarea
               name="body"
-              defaultValue={data.post.body}
+              defaultValue={data.post.body || undefined}
               className="flex-1 rounded-md border-2 border-blue-500 px-3 text-lg leading-loose"
               placeholder="A young man disrupts history when an aging scientist sends him to the past"
               aria-invalid={actionData?.errors?.body ? true : undefined}

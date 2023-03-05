@@ -11,7 +11,6 @@ export function getPost({
   userId: User["id"];
 }) {
   return prisma.post.findFirst({
-    select: { id: true, body: true, title: true },
     where: { id, userId },
   });
 }

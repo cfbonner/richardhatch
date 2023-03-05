@@ -1,16 +1,12 @@
 import {
   Form,
-  useActionData,
+  useCatch,
   useLoaderData,
   useNavigate,
   useSearchParams,
 } from "@remix-run/react";
-import {
-  ActionArgs,
-  json,
-  LoaderArgs,
-  redirect,
-} from "@remix-run/server-runtime";
+import type { ActionArgs, LoaderArgs } from "@remix-run/server-runtime";
+import { json, redirect } from "@remix-run/server-runtime";
 import { AnimatePresence } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import Modal from "~/components/modal";
@@ -19,6 +15,7 @@ import { TagList } from "~/components/tag_list";
 import { prisma } from "~/db.server";
 import { findOrCreateTag, maybeTagPost } from "~/models/tag.server";
 import { XMarkIcon } from "@heroicons/react/24/solid";
+import { requireUserId } from "~/session.server";
 
 export async function loader({ params }: LoaderArgs) {
   const post = await prisma.post.findUnique({
@@ -34,47 +31,48 @@ export async function loader({ params }: LoaderArgs) {
 }
 
 export async function action({ request, params }: ActionArgs) {
+  const userId = await requireUserId(request);
   const form = await request.formData();
-
   if (!params.postId) throw new Response("Not found", { status: 404 });
 
-  if (form.get("intent") == "delete") {
-    const tagId = form.get("tagId");
+  const intent = form.get("intent");
 
-    await prisma.postTags.delete({
-      where: {
-        postId_tagId: {
-          postId: params.postId,
-          tagId: tagId,
-        },
-      },
-    });
-
-    return redirect(`/posts/${params["postId"]}/postTags`);
-  }
-
-  if (form.get("intent") == "create") {
-    const title = form.get("title");
-
-    if (typeof title !== "string" || title.length === 0) {
-      return json({ errors: { title: "must be provided" } }, { status: 400 });
+  switch (intent) {
+    case "create": {
+      const title = form.get("title");
+      if (typeof title !== "string" || title.length === 0) {
+        return json({ errors: { title: "must be provided" } }, { status: 400 });
+      }
+      const tag = await findOrCreateTag({ title, userId });
+      await maybeTagPost({ postId: params.postId, tagId: tag.id });
+      return redirect(
+        `/posts/${params["postId"]}/tags?${new URLSearchParams([
+          ["newTag", tag.slug],
+        ])}`
+      );
     }
-
-    const tag = await findOrCreateTag({ title: title });
-
-    await maybeTagPost({ postId: params.postId, tagId: tag.id });
-
-    return redirect(
-      `/posts/${params["postId"]}/tags?${new URLSearchParams([
-        ["newTag", tag.slug],
-      ])}`
-    );
+    case "delete": {
+      const tagId = form.get("tagId");
+      if (typeof tagId !== "string")
+        throw new Response("Tag not found", { status: 404 });
+      await prisma.postTags.delete({
+        where: {
+          postId_tagId: {
+            postId: params.postId,
+            tagId: tagId,
+          },
+        },
+      });
+      return redirect(`/posts/${params["postId"]}/tags`);
+    }
+    default: {
+      throw new Error("Unexpected action");
+    }
   }
 }
 
 export default function Tags() {
   const data = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const tagInputEl = useRef<HTMLInputElement>(null);
@@ -85,6 +83,7 @@ export default function Tags() {
     if (tagInputEl.current == null) return;
     if (typeof newTag == "string") {
       tagInputEl.current.value = "";
+      tagInputEl.current.focus();
     }
   });
 
@@ -167,4 +166,21 @@ export default function Tags() {
       )}
     </AnimatePresence>
   );
+}
+
+export function CatchBoundary() {
+  const caught = useCatch();
+
+  switch (caught.status) {
+    case 404: {
+      return (
+        <p className="my-4 rounded bg-red-200 px-2 py-1 text-sm">
+          {caught.statusText}
+        </p>
+      );
+    }
+    default: {
+      throw new Error(`Unhandled error: ${caught.status}`);
+    }
+  }
 }
