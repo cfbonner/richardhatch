@@ -43,7 +43,7 @@ export async function action({ request, params }: ActionArgs) {
 export default function ShowPostPage() {
   const data = useLoaderData<typeof loader>();
   return (
-    <div className="max-w-md">
+    <div className="max-w-xl">
       <h3 className="mb-2 text-2xl font-bold">{data.post.title}</h3>
       {data.post.body && <p className="text-md mb-2">{data.post.body}</p>}
       <div className="mb-4 flex w-full justify-end">

@@ -33,22 +33,14 @@ export default function PostsPage() {
 
       <main className="flex h-full bg-white">
         <div className="h-full w-80 border-r bg-gray-50">
-          {data.postListItems.length === 0 ? null : (
-            <ol>
-              {data.postListItems.map((post) => (
-                <li key={post.id}>
-                  <NavLink
-                    className={({ isActive }) =>
-                      `block border-b p-4 text-xl ${isActive ? "bg-white" : ""}`
-                    }
-                    to={post.id}
-                  >
-                    {post.title}
-                  </NavLink>
-                </li>
-              ))}
-            </ol>
-          )}
+          <NavLink
+            to="."
+            className={({ isActive }) =>
+              `block border-b p-4 text-xl ${isActive ? "bg-white" : ""}`
+            }
+          >
+            Dashboard
+          </NavLink>
           <Link to="new" className="block p-4 text-xl text-blue-500">
             + New lunch spot
           </Link>

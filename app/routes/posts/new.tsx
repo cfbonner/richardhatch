@@ -27,14 +27,14 @@ export default function NewPostsPage() {
   const actionData = useActionData<typeof action>();
 
   return (
-    <Form method="post" className="space-y-3">
+    <Form method="post" className="max-w-xl space-y-3">
       <div>
         <label className="flex w-full flex-col gap-1">
           <span>Title:</span>
           <input
             name="title"
             type="text"
-            className="flex-1 rounded-md border-2 border-blue-500 px-3 text-lg leading-loose"
+            className="text-md flex-1 rounded-md border-2 border-blue-500 px-3 leading-loose"
             placeholder="Where can we get good food?"
             aria-invalid={actionData?.errors?.title ? true : undefined}
             aria-errormessage={
@@ -53,7 +53,7 @@ export default function NewPostsPage() {
           <span>Body: </span>
           <textarea
             name="body"
-            className="flex-1 rounded-md border-2 border-blue-500 px-3 text-lg leading-loose"
+            className="text-md flex-1 rounded-md border-2 border-blue-500 px-3 leading-loose"
             placeholder="A young man disrupts history when an aging scientist sends him to the past"
             aria-invalid={actionData?.errors?.body ? true : undefined}
             aria-errormessage={

@@ -24,6 +24,14 @@ export function getPostListItems({ userId }: { userId: User["id"] }) {
   });
 }
 
+export function getPosts({ userId }: { userId: User["id"] }) {
+  return prisma.post.findMany({
+    where: { userId },
+    orderBy: { title: "asc" },
+    include: { tags: { include: { tag: true } } },
+  });
+}
+
 export function createPost({
   body,
   title,
