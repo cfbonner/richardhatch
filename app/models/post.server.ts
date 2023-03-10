@@ -14,6 +14,24 @@ export function getPost({
     where: { id, userId },
   });
 }
+export async function getRandomPost({ userId, tagIds }: { userId: User["id"], tagIds: string[] }) {
+  const scope = {
+      where: { 
+	userId ,
+	...(tagIds.length > 0 && { tags: { some: { tagId: { in: tagIds } }  }})
+      }
+  }
+  const userPostsCount = await prisma.post.count(scope)
+  const randomNumber = Math.floor(Math.random() * userPostsCount)
+  const [randomPost] = await prisma.post.findMany({
+    skip: randomNumber,
+    take: 1,
+    include: { tags: { include: { tag: true } } },
+    ...scope,
+  })
+
+  return randomPost
+}
 
 export function getPostListItems({ userId }: { userId: User["id"] }) {
   return prisma.post.findMany({
